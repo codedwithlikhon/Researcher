@@ -3,6 +3,11 @@
 import type { Message } from "@/lib/chat-types"
 import { Source, SourceTrigger, SourceContent } from "@/components/source"
 import { Reasoning, ReasoningTrigger, ReasoningContent } from "@/components/reasoning"
+import {
+  CollapsibleSection,
+  CollapsibleSectionTrigger,
+  CollapsibleSectionContent,
+} from "@/components/collapsible-section"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -155,28 +160,36 @@ export function ChatMessageEnhanced({ message }: ChatMessageProps) {
 
         {/* Analysis Section */}
         {message.analysis && (
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-              <span className="text-primary">💡</span> Analysis
-            </h3>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                {message.analysis}
-              </p>
-            </div>
-          </div>
+          <CollapsibleSection className="mb-4">
+            <CollapsibleSectionTrigger contentToCopy={message.analysis}>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span className="text-primary">💡</span> Analysis
+              </h3>
+            </CollapsibleSectionTrigger>
+            <CollapsibleSectionContent>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                  {message.analysis}
+                </p>
+              </div>
+            </CollapsibleSectionContent>
+          </CollapsibleSection>
         )}
 
         {/* Limitations Section */}
         {message.limitations && (
-          <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
-            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-              <span className="text-orange-500">⚠️</span> Limitations
-            </h3>
-            <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-              {message.limitations}
-            </p>
-          </div>
+          <CollapsibleSection className="mb-4">
+            <CollapsibleSectionTrigger contentToCopy={message.limitations}>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span className="text-orange-500">⚠️</span> Limitations
+              </h3>
+            </CollapsibleSectionTrigger>
+            <CollapsibleSectionContent>
+              <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                {message.limitations}
+              </p>
+            </CollapsibleSectionContent>
+          </CollapsibleSection>
         )}
 
         {/* Sources */}

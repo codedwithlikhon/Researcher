@@ -24,12 +24,16 @@ export function ChatContainer() {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = async (content: string, useResearch: boolean) => {
+  const handleSendMessage = async (
+    content: string,
+    useResearch: boolean,
+    file?: File,
+  ) => {
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content,
+      content: content || (file ? `File: ${file.name}` : ""),
       timestamp: new Date(),
     }
 
@@ -37,10 +41,16 @@ export function ChatContainer() {
     setIsLoading(true)
 
     try {
+      const formData = new FormData()
+      formData.append("message", content)
+      formData.append("useResearch", useResearch.toString())
+      if (file) {
+        formData.append("file", file)
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content, useResearch }),
+        body: formData,
       })
 
       if (!response.ok) throw new Error("Failed to get response")

@@ -13,6 +13,7 @@ interface ResearchContext {
   query: string
   sources: SearchResult[]
   confidence: number
+  fileContent?: string
 }
 
 interface StructuredResponse {
@@ -96,6 +97,11 @@ LIMITATIONS:
 
   const userPrompt = `User Query: ${userQuery}
 
+${
+  researchContext.fileContent
+    ? `File Content:\n${researchContext.fileContent}\n\n`
+    : ""
+}
 Available Research Sources:
 ${sourcesList}
 

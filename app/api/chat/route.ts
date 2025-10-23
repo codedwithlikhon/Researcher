@@ -1,26 +1,61 @@
 import { generateResearchResponse, searchWeb, assessConfidence } from "@/lib/research"
 import { type NextRequest, NextResponse } from "next/server"
+import formidable from "formidable"
+import fs from "fs/promises"
+import type { IncomingMessage } from "http"
+
+// Helper to disable Next.js body parsing
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
+// Helper to parse the form data
+const parseForm = async (
+  req: IncomingMessage,
+): Promise<{ fields: formidable.Fields; files: formidable.Files }> => {
+  const form = formidable()
+  return new Promise((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) reject(err)
+      resolve({ fields, files })
+    })
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, useResearch } = await request.json()
+    const { fields, files } = await parseForm(request as unknown as IncomingMessage)
+    const message = fields.message?.[0] || ""
+    const useResearch = fields.useResearch?.[0] === "true"
 
-    if (!message || typeof message !== "string") {
-      return NextResponse.json({ error: "Valid message is required" }, { status: 400 })
+    if (!message && !files.file) {
+      return NextResponse.json({ error: "Valid message or file is required" }, { status: 400 })
     }
+
+    let fileContent: string | undefined
+    if (files.file) {
+      const file = files.file[0]
+      fileContent = await fs.readFile(file.filepath, "utf-8")
+    }
+
+    const query = message || "Analyze the attached file."
 
     const researchContext: {
       query: string
-      sources: Array<{title: string, url: string, snippet: string, description?: string}>
+      sources: Array<{ title: string; url: string; snippet: string; description?: string }>
       confidence: number
+      fileContent?: string
     } = {
-      query: message,
+      query: query,
       sources: [],
       confidence: 50,
+      fileContent,
     }
 
     if (useResearch) {
-      researchContext.sources = await searchWeb(message)
+      researchContext.sources = await searchWeb(query)
       researchContext.confidence = assessConfidence(researchContext.sources)
       console.log("[v0] Search completed:", researchContext.sources.length, "sources found")
     }
