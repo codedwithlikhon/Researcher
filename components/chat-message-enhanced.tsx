@@ -137,7 +137,12 @@ export function ChatMessageEnhanced({ message }: ChatMessageProps) {
         )}
 
         {/* Reasoning Section */}
-        {message.reasoning && <Reasoning reasoning={message.reasoning} />}
+        {message.reasoning && (
+          <Reasoning>
+            <ReasoningTrigger />
+            <ReasoningContent>{message.reasoning}</ReasoningContent>
+          </Reasoning>
+        )}
 
         {/* Document Chunks */}
         {message.documentChunks && message.documentChunks.length > 0 && (
