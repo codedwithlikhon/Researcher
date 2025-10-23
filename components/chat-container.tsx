@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { ChatMessage } from "./chat-message"
+import { ChatMessageEnhanced } from "./chat-message-enhanced"
 import { ChatInput } from "./chat-input"
 import type { Message } from "@/lib/chat-types"
 
@@ -51,8 +51,13 @@ export function ChatContainer() {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.content,
+        query: data.query || content,
         sources: data.sources,
         confidence: data.confidence,
+        reasoning: data.reasoning,
+        findings: data.findings,
+        analysis: data.analysis,
+        limitations: data.limitations,
         timestamp: new Date(),
       }
 
@@ -73,34 +78,45 @@ export function ChatContainer() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border p-4">
-        <h1 className="text-2xl font-bold text-foreground">Research Chatbot</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Ask questions with confidence levels and source attribution
+      {/* Header - Mobile Responsive */}
+      <div className="border-b border-border p-3 sm:p-4 bg-card/50 backdrop-blur-sm">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">🔬 AI Research Assistant</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          Powered by MCP • Hugging Face AI • DuckDuckGo Search
         </p>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages - Mobile Optimized */}
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4">
         {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-center">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Research Chatbot</h2>
-              <p className="text-muted-foreground max-w-md">
-                Ask questions and get research-backed answers with confidence levels and source citations.
+          <div className="flex items-center justify-center h-full text-center px-4">
+            <div className="max-w-md">
+              <div className="text-6xl mb-4">🤖</div>
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                Welcome to AI Research Assistant
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Ask questions and get research-backed answers with:
               </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-left">
+                <div className="p-2 bg-muted rounded">✅ Real-time web search</div>
+                <div className="p-2 bg-muted rounded">📊 Confidence scores</div>
+                <div className="p-2 bg-muted rounded">🔗 Source citations</div>
+                <div className="p-2 bg-muted rounded">📄 Export to PDF/MD</div>
+              </div>
             </div>
           </div>
         )}
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessageEnhanced key={message.id} message={message} />
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <ChatInput onSubmit={handleSendMessage} isLoading={isLoading} />
+      {/* Input - Mobile Fixed Bottom */}
+      <div className="border-t border-border bg-card/50 backdrop-blur-sm">
+        <ChatInput onSubmit={handleSendMessage} isLoading={isLoading} />
+      </div>
     </div>
   )
 }

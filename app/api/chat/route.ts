@@ -9,7 +9,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Valid message is required" }, { status: 400 })
     }
 
-    const researchContext = {
+    const researchContext: {
+      query: string
+      sources: Array<{title: string, url: string, snippet: string, description?: string}>
+      confidence: number
+    } = {
       query: message,
       sources: [],
       confidence: 50,
@@ -29,7 +33,11 @@ export async function POST(request: NextRequest) {
       description: source.description || "Click to view source",
     }))
 
+    const content = `${response.findings}\n\n${response.analysis}`
+    
     return NextResponse.json({
+      content,
+      query: message,
       findings: response.findings,
       analysis: response.analysis,
       limitations: response.limitations,

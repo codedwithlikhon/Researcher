@@ -45,10 +45,17 @@ export async function fetchContent(url: string): Promise<string> {
   try {
     console.log("[Research] Fetching content from:", url)
     const content = await mcpClient.fetchContent(url)
+    
+    if (!content) {
+      console.warn("[Research] No content fetched from:", url)
+      return `Unable to fetch content from ${url}`
+    }
+    
+    console.log("[Research] Successfully fetched", content.length, "characters from:", url)
     return content
   } catch (error) {
-    console.error("[Research] Content fetch error:", error)
-    return ""
+    console.error("[Research] Content fetch failed for", url, ":", error)
+    return `Error fetching content from ${url}: ${error instanceof Error ? error.message : "Unknown error"}`
   }
 }
 

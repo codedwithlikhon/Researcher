@@ -2,6 +2,7 @@ export interface Message {
   id: string
   role: "user" | "assistant"
   content: string
+  query?: string
   sources?: Array<{
     title: string
     url: string
@@ -9,6 +10,9 @@ export interface Message {
   }>
   confidence?: number
   reasoning?: string
+  findings?: string
+  analysis?: string
+  limitations?: string
   timestamp: Date
 }
 

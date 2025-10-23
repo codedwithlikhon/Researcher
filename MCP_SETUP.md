@@ -91,7 +91,7 @@ npm install -g @modelcontextprotocol/server-sequential-thinking
 - Logical deduction chains
 - Problem decomposition
 
-### 4. Fetch MCP Server (Planned)
+### 4. Fetch MCP Server ✅ (Required - Active)
 
 **Installation:**
 ```bash
@@ -111,9 +111,11 @@ uv pip install mcp-server-fetch
 ```
 
 **Features:**
-- HTTP content fetching
+- HTTP content fetching (used by the research chatbot)
 - Header customization
 - Response caching
+
+**Tool Name:** `fetch` (note: not `fetch_content`)
 
 ### 5. Puppeteer MCP Server (Alternative to Playwright)
 
@@ -190,7 +192,7 @@ mcp dev duckduckgo-mcp-server
 {
   "method": "tools/call",
   "params": {
-    "name": "fetch_content",
+    "name": "fetch",
     "arguments": {
       "url": "https://example.com"
     }

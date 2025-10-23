@@ -104,24 +104,31 @@ class MCPClientManager {
 
   async fetchContent(url: string): Promise<string> {
     try {
-      const client = await this.initializeDDGClient()
+      const client = await this.initializeFetchClient()
 
       const response = await client.callTool({
-        name: "fetch_content",
+        name: "fetch",
         arguments: {
           url,
         },
       })
 
       if (!response.content || !Array.isArray(response.content) || response.content.length === 0) {
+        console.warn("[MCP] Fetch returned no content for:", url)
         return ""
       }
 
       const firstContent: any = response.content[0]
-      return firstContent.type === "text" ? firstContent.text : ""
+      const content = firstContent.type === "text" ? firstContent.text : ""
+      
+      if (!content) {
+        console.warn("[MCP] Fetched content is empty for:", url)
+      }
+      
+      return content
     } catch (error) {
-      console.error("[MCP] Content fetch error:", error)
-      return ""
+      console.error("[MCP] Content fetch error for", url, ":", error)
+      throw error
     }
   }
 
