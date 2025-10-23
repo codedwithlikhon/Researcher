@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { ChatMessageEnhanced } from "./chat-message-enhanced"
 import { ChatInput } from "./chat-input"
 import type { Message } from "@/lib/chat-types"
+import { ErrorDisplay } from "./ui/error-display"
 
 const fetcher = async (url: string, options: any) => {
   const res = await fetch(url, options)
@@ -14,6 +15,7 @@ const fetcher = async (url: string, options: any) => {
 export function ChatContainer() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -47,9 +49,11 @@ export function ChatContainer() {
         body: JSON.stringify({ message: content, useResearch, fileUrl }),
       })
 
-      if (!response.ok) throw new Error("Failed to get response")
-
       const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to get response")
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -69,13 +73,11 @@ export function ChatContainer() {
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
       console.error("[v0] Chat error:", error)
-      const errorMessage: Message = {
-        id: (Date.now() + 2).toString(),
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again.",
+      )
     } finally {
       setIsLoading(false)
     }
@@ -122,6 +124,7 @@ export function ChatContainer() {
       <div className="border-t border-border bg-card/50 backdrop-blur-sm">
         <ChatInput onSubmit={handleSendMessage} isLoading={isLoading} />
       </div>
+      <ErrorDisplay error={error} onClose={() => setError(null)} />
     </div>
   )
 }

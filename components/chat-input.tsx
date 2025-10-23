@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { toast } from "sonner"
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,12 +29,25 @@ export function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
     if (input.trim() || selectedFile) {
       let fileUrl: string | undefined
       if (selectedFile) {
-        const response = await fetch(`/api/upload?filename=${selectedFile.name}`, {
-          method: 'POST',
-          body: selectedFile,
-        });
-        const newBlob = await response.json();
-        fileUrl = newBlob.url;
+        try {
+          const response = await fetch(`/api/upload?filename=${selectedFile.name}`, {
+            method: "POST",
+            body: selectedFile,
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || "File upload failed")
+          }
+
+          const newBlob = await response.json()
+          fileUrl = newBlob.url
+          toast.success("File uploaded successfully!")
+        } catch (error) {
+          console.error("[v0] File upload error:", error)
+          toast.error(error instanceof Error ? error.message : "An unexpected error occurred.")
+          return
+        }
       }
 
       onSubmit(input, useResearch, fileUrl)

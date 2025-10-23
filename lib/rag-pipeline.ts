@@ -1,8 +1,8 @@
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/huggingface"
 import { PGVectorStore } from "@langchain/community/vectorstores/pgvector"
 import { Pool } from "@neondatabase/serverless"
-import pdf from "pdf-parse"
+import * as pdf from "pdf-parse"
 import mammoth from "mammoth"
 
 const pool = new Pool({
