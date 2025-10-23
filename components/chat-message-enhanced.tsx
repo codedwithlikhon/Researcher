@@ -1,8 +1,8 @@
 "use client"
 
 import type { Message } from "@/lib/chat-types"
-import { Source, SourceTrigger, SourceContent } from "@/components/source"
-import { Reasoning, ReasoningTrigger, ReasoningContent } from "@/components/reasoning"
+import { Source, SourcesTrigger, SourcesContent } from "@/components/ai-elements/sources"
+import { Reasoning } from "@/components/ai-elements/reasoning"
 import {
   CollapsibleSection,
   CollapsibleSectionTrigger,
@@ -137,11 +137,27 @@ export function ChatMessageEnhanced({ message }: ChatMessageProps) {
         )}
 
         {/* Reasoning Section */}
-        {message.reasoning && (
-          <Reasoning className="mb-4">
-            <ReasoningTrigger />
-            <ReasoningContent>{message.reasoning}</ReasoningContent>
-          </Reasoning>
+        {message.reasoning && <Reasoning reasoning={message.reasoning} />}
+
+        {/* Document Chunks */}
+        {message.documentChunks && message.documentChunks.length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+              <span className="text-primary">📄</span> Relevant Document Sections
+            </h3>
+            <div className="flex flex-col gap-2">
+              {message.documentChunks.map((chunk, idx) => (
+                <div key={idx} className="p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                    {chunk.content}
+                  </p>
+                  <Badge variant="outline" className="text-xs mt-2">
+                    Score: {chunk.score.toFixed(2)}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Main Content - Findings */}
@@ -195,20 +211,18 @@ export function ChatMessageEnhanced({ message }: ChatMessageProps) {
         {/* Sources */}
         {message.sources && message.sources.length > 0 && (
           <div className="pt-4 border-t border-border">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-2">
-              Sources ({message.sources.length})
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {message.sources.map((source, idx) => (
-                <Source key={idx} href={source.url}>
-                  <SourceTrigger label={`${idx + 1}. ${source.title}`} showFavicon />
-                  <SourceContent
-                    title={source.title}
-                    description={source.description || "Click to view source"}
+            <SourcesTrigger count={message.sources.length} />
+            <SourcesContent>
+              <div className="flex flex-wrap gap-2">
+                {message.sources.map((source, idx) => (
+                  <Source
+                    key={idx}
+                    href={source.url}
+                    title={`${idx + 1}. ${source.title}`}
                   />
-                </Source>
-              ))}
-            </div>
+                ))}
+              </div>
+            </SourcesContent>
           </div>
         )}
       </Card>

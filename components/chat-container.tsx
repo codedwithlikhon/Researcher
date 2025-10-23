@@ -27,13 +27,13 @@ export function ChatContainer() {
   const handleSendMessage = async (
     content: string,
     useResearch: boolean,
-    file?: File,
+    fileUrl?: string,
   ) => {
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: content || (file ? `File: ${file.name}` : ""),
+      content: content || (fileUrl ? `File: ${fileUrl}` : ""),
       timestamp: new Date(),
     }
 
@@ -41,16 +41,10 @@ export function ChatContainer() {
     setIsLoading(true)
 
     try {
-      const formData = new FormData()
-      formData.append("message", content)
-      formData.append("useResearch", useResearch.toString())
-      if (file) {
-        formData.append("file", file)
-      }
-
       const response = await fetch("/api/chat", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content, useResearch, fileUrl }),
       })
 
       if (!response.ok) throw new Error("Failed to get response")
@@ -68,6 +62,7 @@ export function ChatContainer() {
         findings: data.findings,
         analysis: data.analysis,
         limitations: data.limitations,
+        documentChunks: data.documentChunks,
         timestamp: new Date(),
       }
 

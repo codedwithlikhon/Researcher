@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Paperclip } from "lucide-react"
 
 interface ChatInputProps {
-  onSubmit: (message: string, useResearch: boolean, file?: File) => void
+  onSubmit: (message: string, useResearch: boolean, fileUrl?: string) => void
   isLoading: boolean
 }
 
@@ -24,10 +24,20 @@ export function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() || selectedFile) {
-      onSubmit(input, useResearch, selectedFile || undefined)
+      let fileUrl: string | undefined
+      if (selectedFile) {
+        const response = await fetch(`/api/upload?filename=${selectedFile.name}`, {
+          method: 'POST',
+          body: selectedFile,
+        });
+        const newBlob = await response.json();
+        fileUrl = newBlob.url;
+      }
+
+      onSubmit(input, useResearch, fileUrl)
       setInput("")
       setSelectedFile(null)
     }

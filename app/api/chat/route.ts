@@ -1,63 +1,63 @@
 import { generateResearchResponse, searchWeb, assessConfidence } from "@/lib/research"
 import { type NextRequest, NextResponse } from "next/server"
-import formidable from "formidable"
-import fs from "fs/promises"
-import type { IncomingMessage } from "http"
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/huggingface"
+import { MemoryVectorStore } from "langchain/vectorstores/memory"
+import pdf from "pdf-parse"
 
-// Helper to disable Next.js body parsing
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
-
-// Helper to parse the form data
-const parseForm = async (
-  req: IncomingMessage,
-): Promise<{ fields: formidable.Fields; files: formidable.Files }> => {
-  const form = formidable()
-  return new Promise((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
-      if (err) reject(err)
-      resolve({ fields, files })
-    })
-  })
-}
+let vectorStore: MemoryVectorStore | null = null
 
 export async function POST(request: NextRequest) {
   try {
-    const { fields, files } = await parseForm(request as unknown as IncomingMessage)
-    const message = fields.message?.[0] || ""
-    const useResearch = fields.useResearch?.[0] === "true"
+    const { message, useResearch, fileUrl } = await request.json()
 
-    if (!message && !files.file) {
-      return NextResponse.json({ error: "Valid message or file is required" }, { status: 400 })
+    if (!message) {
+      return NextResponse.json({ error: "Valid message is required" }, { status: 400 })
     }
 
-    let fileContent: string | undefined
-    if (files.file) {
-      const file = files.file[0]
-      fileContent = await fs.readFile(file.filepath, "utf-8")
-    }
+    if (fileUrl) {
+      const response = await fetch(fileUrl)
+      const fileBuffer = await response.arrayBuffer()
+      const pdfData = await pdf(fileBuffer)
 
-    const query = message || "Analyze the attached file."
+      const textSplitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+      })
+      const splits = await textSplitter.createDocuments([pdfData.text])
+
+      const embeddings = new HuggingFaceInferenceEmbeddings({
+        apiKey: process.env.HUGGINGFACE_API_KEY,
+      })
+      vectorStore = await MemoryVectorStore.fromDocuments(splits, embeddings)
+    }
 
     const researchContext: {
       query: string
       sources: Array<{ title: string; url: string; snippet: string; description?: string }>
       confidence: number
-      fileContent?: string
+      documentChunks?: any[]
     } = {
-      query: query,
+      query: message,
       sources: [],
       confidence: 50,
-      fileContent,
     }
 
     if (useResearch) {
-      researchContext.sources = await searchWeb(query)
+      researchContext.sources = await searchWeb(message)
       researchContext.confidence = assessConfidence(researchContext.sources)
       console.log("[v0] Search completed:", researchContext.sources.length, "sources found")
+    }
+
+    if (vectorStore) {
+      const queryEmbedding = await new HuggingFaceInferenceEmbeddings({
+        apiKey: process.env.HUGGINGFACE_API_KEY,
+      }).embedQuery(message)
+      const searchResults = await vectorStore.similaritySearchVectorWithScore(queryEmbedding, 5)
+      researchContext.documentChunks = searchResults.map(([doc, score]) => ({
+        content: doc.pageContent,
+        score,
+      }))
     }
 
     const response = await generateResearchResponse(message, researchContext)
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }))
 
     const content = `${response.findings}\n\n${response.analysis}`
-    
+
     return NextResponse.json({
       content,
       query: message,

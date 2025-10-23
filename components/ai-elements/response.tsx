@@ -2,22 +2,19 @@
 
 import { cn } from "@/lib/utils";
 import { type ComponentProps, memo } from "react";
+import { Streamdown } from "streamdown";
 
-type ResponseProps = ComponentProps<"div"> & {
-  children: string | React.ReactNode;
-};
+type ResponseProps = ComponentProps<typeof Streamdown>;
 
 export const Response = memo(
-  ({ className, children, ...props }: ResponseProps) => (
-    <div
+  ({ className, ...props }: ResponseProps) => (
+    <Streamdown
       className={cn(
-        "size-full prose prose-sm dark:prose-invert [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       {...props}
-    >
-      {children}
-    </div>
+    />
   ),
   (prevProps, nextProps) => prevProps.children === nextProps.children
 );

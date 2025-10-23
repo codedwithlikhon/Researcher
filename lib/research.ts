@@ -13,7 +13,7 @@ interface ResearchContext {
   query: string
   sources: SearchResult[]
   confidence: number
-  fileContent?: string
+  documentChunks?: { content: string; score: number }[]
 }
 
 interface StructuredResponse {
@@ -95,13 +95,13 @@ ANALYSIS:
 LIMITATIONS:
 [What cannot be determined, uncertainties, areas needing further research]`
 
+  const documentContext = researchContext.documentChunks
+    ?.map((chunk) => chunk.content)
+    .join("\n\n")
+
   const userPrompt = `User Query: ${userQuery}
 
-${
-  researchContext.fileContent
-    ? `File Content:\n${researchContext.fileContent}\n\n`
-    : ""
-}
+${documentContext ? `Relevant Document Sections:\n${documentContext}\n\n` : ""}
 Available Research Sources:
 ${sourcesList}
 
@@ -132,6 +132,7 @@ Provide a structured response following the format above. Be concise but thoroug
         confidence: researchContext.confidence,
       })),
       overallConfidence: researchContext.confidence,
+      documentChunks: researchContext.documentChunks,
     }
   } catch (error) {
     console.error("[v0] Generation error:", error)
